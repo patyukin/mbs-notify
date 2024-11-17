@@ -1,0 +1,17 @@
+services:
+  mbs-notify:
+    build:
+      dockerfile: local.Dockerfile
+    container_name: mbs-notify-container
+    volumes:
+      - .:/app
+    restart: always
+    ports:
+      - "5021:5021"
+    networks:
+      - mbs
+
+networks:
+  mbs:
+    name: mbs
+    external: true
