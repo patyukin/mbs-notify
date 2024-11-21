@@ -49,6 +49,15 @@ func main() {
 
 	err = rbt.BindQueueToExchange(
 		rabbitmq.Exchange,
+		rabbitmq.PaymentNotifyQueue,
+		[]string{rabbitmq.AccountCreationRouteKey, rabbitmq.PaymentExecutionInitiateRouteKey},
+	)
+	if err != nil {
+		log.Fatal().Msgf("failed to bind PaymentNotifyQueue to exchange with - PaymentExecutionProcessRouteKey: %v", err)
+	}
+
+	err = rbt.BindQueueToExchange(
+		rabbitmq.Exchange,
 		rabbitmq.NotifyAuthQueue,
 		[]string{rabbitmq.NotifySignUpConfirmCodeRouteKey},
 	)
@@ -61,6 +70,12 @@ func main() {
 	go uc.StartTelegramBot(ctx)
 	go func() {
 		if err = rbt.Consume(ctx, rabbitmq.AuthNotifyQueue, uc.AuthConsumeHandler); err != nil {
+			log.Fatal().Msgf("failed to start auth_notify_consumer: %v", err)
+		}
+	}()
+
+	go func() {
+		if err = rbt.Consume(ctx, rabbitmq.PaymentNotifyQueue, uc.PaymentConsumeHandler); err != nil {
 			log.Fatal().Msgf("failed to start auth_notify_consumer: %v", err)
 		}
 	}()
