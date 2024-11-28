@@ -5,6 +5,8 @@ import (
 	"github.com/patyukin/mbs-notify/internal/config"
 	"github.com/patyukin/mbs-notify/internal/telegram"
 	"github.com/patyukin/mbs-notify/internal/usecase"
+	"github.com/patyukin/mbs-pkg/pkg/kafka"
+	"github.com/patyukin/mbs-pkg/pkg/mux_server"
 	"github.com/patyukin/mbs-pkg/pkg/rabbitmq"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -39,50 +41,60 @@ func main() {
 
 	err = rbt.BindQueueToExchange(
 		rabbitmq.Exchange,
-		rabbitmq.AuthNotifyQueue,
-		[]string{rabbitmq.AuthSignInConfirmCodeRouteKey, rabbitmq.AuthSignUpResultMessageRouteKey},
+		rabbitmq.TelegramMessageQueue,
+		[]string{rabbitmq.TelegramMessageRouteKey},
 	)
 	if err != nil {
 		log.Fatal().Msgf("failed to bind AuthNotifyQueue to exchange with - AuthSignUpResultMessageRouteKey, "+
 			"AuthSignInConfirmCodeRouteKey: %v", err)
 	}
 
-	err = rbt.BindQueueToExchange(
-		rabbitmq.Exchange,
-		rabbitmq.PaymentNotifyQueue,
-		[]string{rabbitmq.AccountCreationRouteKey, rabbitmq.PaymentExecutionInitiateRouteKey},
-	)
+	kfk, err := kafka.NewProducer(cfg.Kafka.Brokers)
 	if err != nil {
-		log.Fatal().Msgf("failed to bind PaymentNotifyQueue to exchange with - PaymentExecutionProcessRouteKey: %v", err)
+		log.Fatal().Msgf("failed to create kafka consumer, err: %v", err)
 	}
 
-	err = rbt.BindQueueToExchange(
-		rabbitmq.Exchange,
-		rabbitmq.NotifyAuthQueue,
-		[]string{rabbitmq.NotifySignUpConfirmCodeRouteKey},
-	)
-	if err != nil {
-		log.Fatal().Msgf("failed to bind NotifyAuthQueue to exchange with - NotifySignUpConfirmCodeRouteKey: %v", err)
-	}
+	uc := usecase.New(tg, kfk)
 
-	uc := usecase.New(tg, rbt)
+	// mux server
+	m := mux_server.New()
+
+	errCh := make(chan error)
 
 	go uc.StartTelegramBot(ctx)
 	go func() {
-		if err = rbt.Consume(ctx, rabbitmq.AuthNotifyQueue, uc.AuthConsumeHandler); err != nil {
+		if err = rbt.Consume(ctx, rabbitmq.TelegramMessageQueue, uc.ConsumeTelegramMessageQueue); err != nil {
 			log.Fatal().Msgf("failed to start auth_notify_consumer: %v", err)
 		}
 	}()
 
+	// metrics + pprof server
 	go func() {
-		if err = rbt.Consume(ctx, rabbitmq.PaymentNotifyQueue, uc.PaymentConsumeHandler); err != nil {
-			log.Fatal().Msgf("failed to start auth_notify_consumer: %v", err)
+		log.Info().Msgf("Prometheus metrics exposed on :%d/metrics", cfg.HttpServer.Port)
+		if err = m.Run(cfg.HttpServer.Port); err != nil {
+			log.Error().Msgf("Failed to serve Prometheus metrics: %v", err)
+			errCh <- err
 		}
 	}()
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	<-sigs
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	log.Info().Msg("Завершение работы...")
+	select {
+	case err = <-errCh:
+		log.Error().Msgf("Failed to run, err: %v", err)
+	case res := <-sigChan:
+		if res == syscall.SIGINT || res == syscall.SIGTERM {
+			log.Info().Msg("Signal received")
+		} else if res == syscall.SIGHUP {
+			log.Info().Msg("Signal received")
+		}
+	}
+
+	log.Info().Msg("Shutting Down")
+
+	// stop pprof server
+	if err = m.Shutdown(ctx); err != nil {
+		log.Error().Msgf("failed to shutdown pprof server: %s", err.Error())
+	}
 }

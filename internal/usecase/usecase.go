@@ -6,22 +6,19 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type RabbitMQ interface {
-	PublishDQLMessage(ctx context.Context, body []byte) error
-	PublishNotifySignUpConfirmCode(ctx context.Context, body []byte, headers amqp.Table) error
-	PublishAuthSignUpResultMessage(ctx context.Context, body []byte, headers amqp.Table) error
-	PublishAuthSignInCode(ctx context.Context, body []byte, headers amqp.Table) error
+type KafkaProducer interface {
+	PublishRegistrationSolution(ctx context.Context, value []byte) error
 }
 
 type UseCase struct {
 	bot *telegram.Bot
-	rbt RabbitMQ
+	kfk KafkaProducer
 }
 
-func New(bot *telegram.Bot, rbt RabbitMQ) *UseCase {
+func New(bot *telegram.Bot, kfk KafkaProducer) *UseCase {
 	return &UseCase{
 		bot: bot,
-		rbt: rbt,
+		kfk: kfk,
 	}
 }
 

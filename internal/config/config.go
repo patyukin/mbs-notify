@@ -6,9 +6,16 @@ import (
 )
 
 type Config struct {
-	MinLogLevel   string `yaml:"min_log_level" validate:"oneof=debug info warn error fatal panic"`
+	MinLogLevel string `yaml:"min_log_level" validate:"oneof=debug info warn error fatal panic"`
+	HttpServer  struct {
+		Port int `yaml:"port" validate:"required,numeric"`
+	} `yaml:"http_server" validate:"required"`
 	TelegramToken string `yaml:"telegram_token" validate:"required"`
 	RabbitMQUrl   string `yaml:"rabbitmq_url" validate:"required"`
+	Kafka         struct {
+		Brokers []string `yaml:"brokers" validate:"required"`
+		Topics  []string `yaml:"topics" validate:"required"`
+	} `yaml:"kafka"`
 }
 
 func LoadConfig() (*Config, error) {
