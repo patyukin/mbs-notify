@@ -23,6 +23,8 @@ func (u *UseCase) ConsumeTelegramMessageQueue(ctx context.Context, msg amqp.Deli
 		return fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
+	log.Debug().Msgf("Received message: %+v", string(msg.Body))
+
 	msgConfig := tgbotapi.NewMessage(message.ChatID, message.Message)
 	if _, err := u.bot.API.Send(msgConfig); err != nil {
 		return fmt.Errorf("failed to send message: %w", err)

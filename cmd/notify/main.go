@@ -45,8 +45,7 @@ func main() {
 		[]string{rabbitmq.TelegramMessageRouteKey},
 	)
 	if err != nil {
-		log.Fatal().Msgf("failed to bind AuthNotifyQueue to exchange with - AuthSignUpResultMessageRouteKey, "+
-			"AuthSignInConfirmCodeRouteKey: %v", err)
+		log.Fatal().Msgf("failed to bind TelegramMessageQueue to exchange with - TelegramMessageRouteKey: %v", err)
 	}
 
 	kfk, err := kafka.NewProducer(cfg.Kafka.Brokers)
