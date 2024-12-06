@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/patyukin/mbs-notify/internal/telegram"
 	amqp "github.com/rabbitmq/amqp091-go"
 )

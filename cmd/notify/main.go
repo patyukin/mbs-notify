@@ -2,6 +2,11 @@ package main
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/patyukin/mbs-notify/internal/config"
 	"github.com/patyukin/mbs-notify/internal/telegram"
 	"github.com/patyukin/mbs-notify/internal/usecase"
@@ -10,10 +15,6 @@ import (
 	"github.com/patyukin/mbs-pkg/pkg/rabbitmq"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func main() {
