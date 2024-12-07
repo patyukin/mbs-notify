@@ -5,7 +5,7 @@ WORKDIR /app
 
 RUN go mod download
 RUN go mod tidy
-RUN go build -o ./bin/api_gateway cmd/notify/main.go
+RUN go build -o ./bin/notify cmd/notify/main.go
 
 FROM alpine3.20
 
