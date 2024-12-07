@@ -1,0 +1,18 @@
+min_log_level: "debug"
+telegram_token: ""
+redis:
+  host: redis
+  port: 6379
+rabbitmq:
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest
+  auth_queue: auth_queue
+  notification_queue: notification_queue
+  exchange: exchange
+kafka:
+  host: kafka
+  port: 9092
+  topic: topic
+  group_id: group

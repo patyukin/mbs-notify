@@ -1,0 +1,12 @@
+exchange: "banking_system_exchange"
+# auth service
+auth_notify_queue: "auth_notify_queue"
+auth_sign_up_confirm_code_route_key: "auth_sign_up_confirm_code_route_key"
+auth_sign_in_code_route_key: "auth_sign_in_code_route_key"
+notify_auth_queue: "notify_auth_queue"
+notify_sign_up_confirm_message_route_key: "notify_sign_up_confirm_message_route_key"
+# logger service
+logger_notify_queue: "logger_notify_queue"
+notify_report_route_key: "notify_report_route_key"
+# dead letter queue
+dead_letter_queue_route_key: "dead_letter_queue_route_key"
