@@ -70,7 +70,6 @@ func main() {
 
 	// metrics + pprof server
 	go func() {
-		log.Info().Msgf("Prometheus metrics exposed on :%d/metrics", cfg.HttpServer.Port)
 		if err = m.Run(cfg.HttpServer.Port); err != nil {
 			log.Error().Msgf("Failed to serve Prometheus metrics: %v", err)
 			errCh <- err

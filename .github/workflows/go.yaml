@@ -57,7 +57,7 @@ jobs:
             docker rm -f $CONTAINER_NAME
 
             # cd to project directory
-            cd ~/notify
+            cd ~/mbs-notify
 
             # deploy
             ./deploy.sh $TAG_NAME
