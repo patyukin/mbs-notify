@@ -5,7 +5,7 @@ go 1.23.2
 require (
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.6.0
-	github.com/patyukin/mbs-pkg v1.1.170
+	github.com/patyukin/mbs-pkg v1.1.172
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/rs/zerolog v1.33.0
 )
